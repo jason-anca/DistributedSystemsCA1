@@ -9,7 +9,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // 
     console.log("Event: ", event);
     const parameters = event?.pathParameters;
     const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
-    // const castMember = event.queryStringParameters?.cast === 'true';
 
     if (!movieId) {
       return {
@@ -41,24 +40,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // 
       data: commandOutput.Item,
     };
 
-    // if (castMember) {
-    //   let commandInput:
-    //   QueryCommandInput = {
-    //     TableName: "MovieCast",
-    //     KeyConditionExpression: "movieId = :m",
-    //     ExpressionAttributeValues: {
-    //       ":m": movieId,
-    //     },
-    //   };
-
-    //   const castCommandOutput = await ddbDocClient.send(
-    //     new QueryCommand(commandInput)
-    //     );
-
-    //     body.data.cast = castCommandOutput.Items;
-    // }
-
-    // Return Response
     return {
       statusCode: 200,
       headers: {
