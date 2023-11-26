@@ -16,7 +16,6 @@ export class RestAPIStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    //User Pool
     const userPool = new UserPool(this, "UserPool", {
       signInAliases: { username: true, email: true },
       selfSignUpEnabled: true,
@@ -298,7 +297,7 @@ export class RestAPIStack extends cdk.Stack {
       new apig.LambdaIntegration(getReviewsByMovieFn, { proxy: true })
     );
 
-    //GET Reviewss by Reviewer Name
+    //GET Reviews by Reviewer Name
     const reviewerNameEndpoint = movieEndpoint.addResource("reviewsByName")
     reviewerNameEndpoint.addMethod(
       "GET",
@@ -311,4 +310,5 @@ export class RestAPIStack extends cdk.Stack {
       new apig.LambdaIntegration(getAllReviewsByReviewerFn, { proxy: true })
     )
   }
+
 }

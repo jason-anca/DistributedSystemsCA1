@@ -1,6 +1,6 @@
 import { Handler } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
@@ -18,15 +18,16 @@ export const handler: Handler = async (event, context) => {
         body: JSON.stringify({ Message: "Invalid Reviewer Name" }),
       };
     }
+    const commandInput = {
+        TableName: process.env.TABLE_NAME,
+        KeyConditionExpression: "reviewerName = :r",
+        ExpressionAttributeValues: {
+          ":r": reviewerName,
+        },
+      };
   
       const commandOutput = await ddbDocClient.send(
-        new ScanCommand({
-            TableName: process.env.TABLE_NAME,
-            FilterExpression: "reviewerName = :r",
-            ExpressionAttributeValues: {
-                ":r": reviewerName
-            },
-          })
+        new QueryCommand(commandInput)
         );
 
     // Return Response
