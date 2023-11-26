@@ -15,3 +15,10 @@ This repository contains the implementation of a serverless REST API for the AWS
 
 # Authentication
 ![Alt text](image-1.png)
+
+To run..
+
+    Run 'npm install' to begin
+    Next run 'npm run schema'
+    Finally, run 'cdk deploy'
+    When finished, run 'cdk destroy' to clean up everything
