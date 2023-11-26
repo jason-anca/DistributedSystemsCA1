@@ -1,33 +1,32 @@
 import { Handler } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
 export const handler: Handler = async (event, context) => {
   try {
     console.log("Event: ", event);
-    const movieId = parseInt(event?.pathParameters?.movieId)?parseInt(event?.pathParameters?.movieId):undefined
+    const reviewerName = event?.pathParameters?.reviewerName
 
-    if (!movieId) {
+    if (!reviewerName) {
       return {
         statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ Message: "Missing movie Id" }),
+        body: JSON.stringify({ Message: "Invalid Reviewer Name" }),
       };
     }
-    const commandInput = {
-        TableName: process.env.TABLE_NAME,
-        KeyConditionExpression: "movieId = :m",
-        ExpressionAttributeValues: {
-          ":m": movieId,
-        },
-      };
   
       const commandOutput = await ddbDocClient.send(
-        new QueryCommand(commandInput)
+        new ScanCommand({
+            TableName: process.env.TABLE_NAME,
+            FilterExpression: "reviewerName = :r",
+            ExpressionAttributeValues: {
+                ":r": reviewerName
+            },
+          })
         );
 
     // Return Response

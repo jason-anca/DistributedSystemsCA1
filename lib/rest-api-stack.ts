@@ -31,14 +31,14 @@ export class RestAPIStack extends cdk.Stack {
     const userPoolClientId = appClient.userPoolClientId;
 
     new AuthApi(this, 'AuthServiceApi', {
-			userPoolId: userPoolId,
-			userPoolClientId: userPoolClientId,
-		});
+      userPoolId: userPoolId,
+      userPoolClientId: userPoolClientId,
+    });
 
     new AppApi(this, 'AppApi', {
-			userPoolId: userPoolId,
-			userPoolClientId: userPoolClientId,
-		} );
+      userPoolId: userPoolId,
+      userPoolClientId: userPoolClientId,
+    });
 
     // Tables 
     const moviesTable = new dynamodb.Table(this, "MoviesTable", {
@@ -162,6 +162,55 @@ export class RestAPIStack extends cdk.Stack {
       }
     );
 
+    const getReviewsByReviewerNameFn = new lambdanode.NodejsFunction(
+      this,
+      "GetReviewsByReviewerNameFn",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_16_X,
+        entry: `${__dirname}/../lambdas/getReviewsByReviewer.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: reviewsTable.tableName,
+          REGION: 'eu-west-1',
+        },
+      }
+    );
+
+
+    const getAllReviewsByReviewerFn = new lambdanode.NodejsFunction(
+      this,
+      "GetAllReviewsByReviewerFn",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_16_X,
+        entry: `${__dirname}/../lambdas/getReviewsByReviewer.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: reviewsTable.tableName,
+          REGION: 'eu-west-1',
+        },
+      }
+    );
+
+    const getReviewsByMovieFn = new lambdanode.NodejsFunction(
+      this,
+      "GetReviewsByMovieFn",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_16_X,
+        entry: `${__dirname}/../lambdas/getReviewsByMovie.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: reviewsTable.tableName,
+          REGION: 'eu-west-1',
+        },
+      }
+    );
+
     new custom.AwsCustomResource(this, "moviesddbInitData", {
       onCreate: {
         service: "DynamoDB",
@@ -187,6 +236,8 @@ export class RestAPIStack extends cdk.Stack {
     reviewsTable.grantReadWriteData(newMovieReviewFn)
     reviewsTable.grantReadData(getMovieReviewsFn)
     reviewsTable.grantReadWriteData(getReviewByReviewerNameFn)
+    reviewsTable.grantReadData(getReviewsByReviewerNameFn)
+    reviewsTable.grantReadData(getReviewsByMovieFn)
 
     const api = new apig.RestApi(this, "RestAPI", {
       description: "demo api",
@@ -234,7 +285,7 @@ export class RestAPIStack extends cdk.Stack {
       "GET",
       new apig.LambdaIntegration(getMovieReviewsFn, { proxy: true })
     );
-    
+
     //POST Movie Review
     const reviewsEndpoint = moviesEndpoint.addResource("reviews")
     reviewsEndpoint.addMethod(
@@ -242,10 +293,22 @@ export class RestAPIStack extends cdk.Stack {
       new apig.LambdaIntegration(newMovieReviewFn, { proxy: true })
     );
 
-      const reviewerNameEndpoint = movieEndpoint.addResource("reviewsByName")
-      reviewerNameEndpoint.addMethod(
-        "GET",
-        new apig.LambdaIntegration(getReviewByReviewerNameFn, { proxy: true })
-      )
+    reviewsEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getReviewsByMovieFn, { proxy: true })
+    );
+
+    //GET Reviewss by Reviewer Name
+    const reviewerNameEndpoint = movieEndpoint.addResource("reviewsByName")
+    reviewerNameEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getReviewByReviewerNameFn, { proxy: true })
+    )
+
+    const allReviewersReviewsEndpoint = reviewsEndpoint.addResource("{reviewerName}")
+    allReviewersReviewsEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getAllReviewsByReviewerFn, { proxy: true })
+    )
   }
 }
