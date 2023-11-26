@@ -7,11 +7,9 @@ const ddbDocClient = createDDbDocClient();
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // Note change
   try {
     console.log("Event: ", event);
-    // const parameters = event?.queryStringParameters;
-    // const movieId = parameters ? parseInt(parameters.movieId) : undefined;
     const parameters = event?.pathParameters;
     const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
-    const castMember = event.queryStringParameters?.cast === 'true';
+    // const castMember = event.queryStringParameters?.cast === 'true';
 
     if (!movieId) {
       return {
@@ -43,22 +41,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // 
       data: commandOutput.Item,
     };
 
-    if (castMember) {
-      let commandInput:
-      QueryCommandInput = {
-        TableName: "MovieCast",
-        KeyConditionExpression: "movieId = :m",
-        ExpressionAttributeValues: {
-          ":m": movieId,
-        },
-      };
+    // if (castMember) {
+    //   let commandInput:
+    //   QueryCommandInput = {
+    //     TableName: "MovieCast",
+    //     KeyConditionExpression: "movieId = :m",
+    //     ExpressionAttributeValues: {
+    //       ":m": movieId,
+    //     },
+    //   };
 
-      const castCommandOutput = await ddbDocClient.send(
-        new QueryCommand(commandInput)
-        );
+    //   const castCommandOutput = await ddbDocClient.send(
+    //     new QueryCommand(commandInput)
+    //     );
 
-        body.data.cast = castCommandOutput.Items;
-    }
+    //     body.data.cast = castCommandOutput.Items;
+    // }
 
     // Return Response
     return {
