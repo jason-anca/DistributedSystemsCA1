@@ -8,10 +8,37 @@ import { Construct } from "constructs";
 import { generateBatch } from "../shared/util";
 import { movies, movieCasts } from "../seed/movies";
 import * as apig from "aws-cdk-lib/aws-apigateway";
+import { UserPool } from "aws-cdk-lib/aws-cognito";
+import { AuthApi } from './auth-api'
+import { AppApi } from './app-api'
 
 export class RestAPIStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    //User Pool
+    const userPool = new UserPool(this, "UserPool", {
+      signInAliases: { username: true, email: true },
+      selfSignUpEnabled: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+    const userPoolId = userPool.userPoolId;
+
+    const appClient = userPool.addClient("AppClient", {
+      authFlows: { userPassword: true },
+    });
+
+    const userPoolClientId = appClient.userPoolClientId;
+
+    new AuthApi(this, 'AuthServiceApi', {
+			userPoolId: userPoolId,
+			userPoolClientId: userPoolClientId,
+		});
+
+    new AppApi(this, 'AppApi', {
+			userPoolId: userPoolId,
+			userPoolClientId: userPoolClientId,
+		} );
 
     // Tables 
     const moviesTable = new dynamodb.Table(this, "MoviesTable", {
