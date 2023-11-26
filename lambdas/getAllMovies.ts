@@ -9,7 +9,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // 
     // Print Event
     console.log("Event: ", event);
 
-    const commandOutput = await ddbDocClient.send(
+    const commandOutput = await ddbClient.send(
       new ScanCommand({
         TableName: process.env.TABLE_NAME,
       })
